@@ -1,4 +1,9 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
-
-export default nextConfig;
+const nextConfig = {
+    reactStrictMode: false,
+    env: {
+      SOL_RPC: 'https://api.devnet.solana.com', //  URL  RPC-эндпоинта
+    },
+  };
+  
+  export default nextConfig;

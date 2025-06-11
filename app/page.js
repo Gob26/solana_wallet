@@ -1,103 +1,89 @@
-import Image from "next/image";
+"use client"; // Директива Next.js: этот модуль должен быть клиентским компонентом
+import { useState } from 'react'; // Импортируем хук useState для управления состоянием React
+import { Keypair, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js'; // Импортируем Keypair и PublicKey из @solana/web3.js
+import toBase58 from 'bs58'; // Импортируем библиотеку bs58 для кодирования/декодирования Base58
+import styles from './page.module.css'; // Импортируем CSS-модули для стилизации компонента
+import { getWallet, connection } from '@/lib/const'; // ИСПРАВЛЕНО: импортируем connection из lib/const
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const data = {
+    Wallet_1: new PublicKey('5hmFPpjaKDJjRTmS5gXVzpqzxVt91D2ptxywHDEHdYBN'),
+    Wallet_2: new PublicKey('Bv98KFriJP9mqHjxBZcAtB7YZ6Z7TSYzmbEdsu6axazA')
+  };
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+  // Состояние для хранения форматированного вывода (ключей или ошибок)
+  const [pre, setPre] = useState('');
+
+  // Вспомогательная функция для обновления состояния 'pre' с JSON-строкой
+  const log = data => setPre(JSON.stringify(data, null, 2));
+
+  // Функция для генерации новой пары ключей Solana
+  const createKey = () => {
+    try {
+      const key = Keypair.generate(); // Генерируем новую криптографическую пару ключей
+      // Логируем публичный и приватный ключи
+      // public: key.publicKey.toBase58() - преобразуем объект PublicKey в строку Base58
+      // private: toBase58.encode(key.secretKey) - кодируем Uint8Array приватного ключа в строку Base58
+      log({
+        public: key.publicKey.toBase58(),
+        private: toBase58.encode(key.secretKey),
+      });
+    } catch (error) {
+      // Обработка ошибок при генерации ключей
+      log({ error: error.message || "Ошибка при генерации ключа" });
+      console.error("Ошибка при генерации ключа:", error);
+    }
+  };
+
+  const getParsedAcc = async acc => { // ИСПРАВЛЕНО: исправлена опечатка в названии функции
+    try {
+      const res = await connection.getParsedAccountInfo(acc);
+      log(res);
+    } catch (error) {
+      log({ error: error.message || "Ошибка при получении информации об аккаунте" });
+      console.error("Ошибка при получении информации об аккаунте:", error);
+    }
+  }
+
+  const airdrop = async () => {
+    try {
+      const wallet = await getWallet();
+      if (!wallet) {
+        log({ error: "Кошелек не подключен" });
+        return;
+      }
+      log({ message: "Кошелек подключен", publicKey: wallet.publicKey.toString() });
+      
+      const txId = await connection.requestAirdrop(wallet.publicKey, LAMPORTS_PER_SOL); // ИСПРАВЛЕНО: добавлен await
+      log({ transactionId: txId });
+    } catch (error) {
+      log({ error: error.message || "Ошибка при запросе airdrop" });
+      console.error("Ошибка при запросе airdrop:", error);
+    }
+  }
+
+  return (
+    <div className={styles.main}>
+      <div className={styles.button}>
+        <button onClick={createKey}>Generate Key</button> {/* Кнопка для генерации ключей */}
+        <button onClick={airdrop}>AirDrop</button>
+      </div>
+      <div className={styles.dataContainer}>
+        {/* Отображаем сгенерированные данные или сообщение по умолчанию */}
+        <pre>{pre || 'Нет сгенерированных ключей'}</pre>
+        {/* Дополнительно отображаем начальные кошельки для демонстрации.
+        * Важно: объекты PublicKey должны быть преобразованы в строки для JSON.stringify. */}
+        <h3>Изначальные кошельки:</h3>
+        {Object.keys(data).map((k, i) => (
+          <h4 key={i} onClick={() => getParsedAcc(data[k])}> {/* ИСПРАВЛЕНО: исправлена опечатка в названии функции */}
+            {k} {data[k].toBase58()}
+          </h4>
+        ))}
+        <pre>{JSON.stringify({
+          Wallet_1: data.Wallet_1.toBase58(),
+          Wallet_2: data.Wallet_2.toBase58(),
+        }, null, 2)}</pre>
+      </div>
     </div>
   );
 }
