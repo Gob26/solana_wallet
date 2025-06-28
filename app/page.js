@@ -1,16 +1,16 @@
 "use client"; // Директива Next.js: этот модуль должен быть клиентским компонентом
 import { useState } from 'react'; // Импортируем хук useState для управления состоянием React
-import { Keypair, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js'; // Импортируем Keypair и PublicKey из @solana/web3.js
+import { Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction } from '@solana/web3.js'; // Импортируем Keypair и PublicKey из @solana/web3.js
 import toBase58 from 'bs58'; // Импортируем библиотеку bs58 для кодирования/декодирования Base58
 import styles from './page.module.css'; // Импортируем CSS-модули для стилизации компонента
-import { getWallet, connection } from '@/lib/const'; // ИСПРАВЛЕНО: импортируем connection из lib/const
+import { getWallet, connection, sendTx } from '@/lib/const'; // ИСПРАВЛЕНО: импортируем connection из lib/const
 
 export default function Home() {
   const data = {
-    Wallet_1: new PublicKey('5hmFPpjaKDJjRTmS5gXVzpqzxVt91D2ptxywHDEHdYBN'),
-    Wallet_2: new PublicKey('Bv98KFriJP9mqHjxBZcAtB7YZ6Z7TSYzmbEdsu6axazA')
-  };
-
+    Wallet_1: new PublicKey('G8rtHGPWooRBRP9m362MDkyePwJ2Mg3c9w7SmbDN8fjf'),
+    Wallet_2: new PublicKey('31joKiojuSfG7Y1hLcJsTNSFLEZR1QNYcuVuzg6upch8')
+  }
+  
   // Состояние для хранения форматированного вывода (ключей или ошибок)
   const [pre, setPre] = useState('');
 
@@ -62,11 +62,29 @@ export default function Home() {
     }
   }
 
+  const transfer = async () => {
+    const wallet = await getWallet();
+
+    const tx = new Transaction();
+    tx.add(
+      SystemProgram.transfer({
+        fromPubkey: wallet.publicKey,
+        toPubkey: data.Wallet_1,
+        lamports: LAMPORTS_PER_SOL       
+  })
+    );
+    const txId = await sendTx(tx);
+    log(txId)
+
+  }
+
   return (
     <div className={styles.main}>
       <div className={styles.button}>
         <button onClick={createKey}>Generate Key</button> {/* Кнопка для генерации ключей */}
         <button onClick={airdrop}>AirDrop</button>
+        <button onClick={transfer}>Transfer</button>
+
       </div>
       <div className={styles.dataContainer}>
         {/* Отображаем сгенерированные данные или сообщение по умолчанию */}
